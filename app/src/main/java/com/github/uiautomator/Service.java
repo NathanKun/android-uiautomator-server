@@ -58,7 +58,7 @@ public class Service extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        while(true) {
+        while (true) {
             try {
                 Thread.sleep(10 * 1000);
                 final String url = "http://127.0.0.1:7912/ping";
@@ -96,7 +96,7 @@ public class Service extends IntentService {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(String channelId, String channelName){
+    private String createNotificationChannel(String channelId, String channelName) {
         NotificationChannel chan = new NotificationChannel(channelId,
                 channelName, NotificationManager.IMPORTANCE_NONE);
         chan.setLightColor(Color.BLUE);
@@ -129,8 +129,9 @@ public class Service extends IntentService {
         startForeground(NOTIFICATION_ID, notification);
 
         HttpPostNotifier notifier = new HttpPostNotifier("http://127.0.0.1:7912");
-        addMonitor(new BatteryMonitor(this, notifier));
-        addMonitor(new RotationMonitor(this, notifier));
+        Context context = getApplicationContext();
+        addMonitor(new BatteryMonitor(context, notifier));
+        addMonitor(new RotationMonitor(context, notifier));
         addMonitor(new WifiMonitor(this, notifier));
     }
 
@@ -144,8 +145,9 @@ public class Service extends IntentService {
     public void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "Stopping service");
-        stopForeground(true);
         removeAllMonitor();
+        Log.i(TAG, "unregister all watchers");
+        stopForeground(true);
     }
 
     @Override
@@ -176,6 +178,7 @@ public class Service extends IntentService {
 
     private void removeAllMonitor() {
         for (AbstractMonitor monitor : monitors) {
+            Log.i(TAG, "Unregister: " + monitor.toString());
             monitor.unregister();
         }
     }
